@@ -57,6 +57,24 @@ int display_clear() {
   DEV_Delay_ms(1000);
 }
 
+int display_text(char* text) {
+  UDOUBLE Imagesize = ((EPD_5IN65F_WIDTH % 2 == 0)? (EPD_5IN65F_WIDTH / 2 ): (EPD_5IN65F_WIDTH / 2 + 1)) * EPD_5IN65F_HEIGHT;
+  UBYTE *BlackImage;
+  if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+    printf("Failed to apply for black memory...\r\n");
+    return -1;
+  }
+  Paint_NewImage(BlackImage, EPD_5IN65F_WIDTH, EPD_5IN65F_HEIGHT, 0, EPD_5IN65F_WHITE);
+  Paint_SetScale(7);
+  Paint_Clear(EPD_5IN65F_WHITE);
+  Paint_DrawString_EN(50, 74, text, &Font24, EPD_5IN65F_WHITE, EPD_5IN65F_BLACK);
+  printf("e-Paper draw text\n");
+  EPD_5IN65F_Display(BlackImage);
+  free(BlackImage);
+  BlackImage = NULL;
+  DEV_Delay_ms(4000);
+}
+
 int main(int argc, char *argv[])
 {
   if (argc <= 1 ){
@@ -76,6 +94,15 @@ int main(int argc, char *argv[])
       return -1;
     }
     display_image(argv[2]);
+    finalize();
+  }
+
+  if (strcmp(argv[1], "-t") == 0 && argc == 3) {
+    signal(SIGINT, Handler);
+    if (initialize() == -1) {
+      return -1;
+    }
+    display_text(argv[2]);
     finalize();
   }
   return 0;
